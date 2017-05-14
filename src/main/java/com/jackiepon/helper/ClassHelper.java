@@ -2,12 +2,9 @@ package com.jackiepon.helper;
 
 import com.jackiepon.annotation.Controller;
 import com.jackiepon.annotation.Service;
-import com.jackiepon.constant.ConfigConstant;
 import com.jackiepon.util.ClassUtil;
-import com.jackiepon.util.PropsUtil;
 
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -69,7 +66,7 @@ public final class ClassHelper {
         Set<Class<?>> beanClassSet = new HashSet<Class<?>>();
         beanClassSet.addAll(getControllerClassSet());
         beanClassSet.addAll(getServiceClassSet());
-        return classSet;
+        return beanClassSet;
     }
 
 }
