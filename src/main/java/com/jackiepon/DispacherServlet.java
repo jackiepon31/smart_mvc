@@ -1,10 +1,13 @@
 package com.jackiepon;
 
+import com.jackiepon.bean.Data;
 import com.jackiepon.bean.Handler;
+import com.jackiepon.bean.Param;
+import com.jackiepon.bean.View;
 import com.jackiepon.helper.BeanHelper;
 import com.jackiepon.helper.ConfigHelper;
 import com.jackiepon.helper.ControllerHelper;
-import com.jackiepon.util.CodecUtil;
+import com.jackiepon.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.*;
@@ -13,6 +16,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,14 +62,62 @@ public class DispacherServlet extends HttpServlet{
             Map<String,Object> paramMap = new HashMap<String,Object>();
             Enumeration<String> paramNames = req.getParameterNames();
             while (paramNames.hasMoreElements()){
+                //HTTP GET
                 String paramName = paramNames.nextElement();
                 String paramValue = req.getParameter(paramName);
                 paramMap.put(paramName,paramValue);
             }
-            String body = CodecUtil.decodeURL(StreamUtil.getString(req.getInputStream()));
-            if(StringUtils.isNotEmpty()){
 
+            String body = CodecUtil.decodeURL(StreamUtil.getString(req.getInputStream()));
+            if(StringUtils.isNotEmpty(body)){
+                //HTTP POST
+                String[] params = StringUtils.split(body,"&");
+                if(ArrayUtil.isNotEmpty(params)){
+                    for (String param:params) {
+                        String[] array = StringUtils.split(param,"=");
+                        if(ArrayUtil.isNotEmpty(array) && array.length==2){
+                            String paramName = array[0];
+                            String paramValue = array[1];
+                            paramMap.put(paramName,paramValue);
+                        }
+                    }
+                }
             }
+
+            Param param = new Param(paramMap);
+            //调用Action方法
+            Method actionMethod = handler.getActionMethod();
+            Object result = ReflectionUtil.invokeMethod(controllerBean,actionMethod,param);
+            //处理Action方法返回值
+            if(result instanceof View){
+                //返回JSP页面
+                View view = (View)result;
+                String path = view.getPath();
+                if(StringUtils.isNotEmpty(path)){
+                    if(path.startsWith("/")){
+                        resp.sendRedirect(req.getContextPath()+path);
+                    }else{
+                        Map<String,Object> model = view.getModel();
+                        for (Map.Entry<String, Object> entry: model.entrySet()) {
+                            req.setAttribute(entry.getKey(),entry.getValue());
+                        }
+                        req.getRequestDispatcher(ConfigHelper.getAppJspPath()+path).forward(req,resp);
+                    }
+                }else if(result instanceof Data){
+                    Data data = (Data) result;
+                    Object model = data.getModel();
+                    if(model!=null){
+                        resp.setContentType("application/json");
+                        resp.setCharacterEncoding("UTF-8");
+                        PrintWriter writer = resp.getWriter();
+                        String json = JsonUtil.toJson(model);
+                        writer.write(json);
+                        writer.flush();
+                        writer.close();
+                    }
+                }
+            }
+
 
         }
     }

@@ -2,12 +2,7 @@ package com.jackiepon.util;
 
 import org.slf4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.io.*;
 
 /**
  * 
@@ -24,27 +19,21 @@ public class StreamUtil {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(StreamUtil.class);
 
     /*
-    * 将URL编码
+    * 从输入流中获取字符串
     * */
     public static String getString(InputStream is){
         StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String line;
-        while ((line = reader.readLine()!=null))
-        return target;
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = reader.readLine())!=null){
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("get string failure",e);
+        }
+        return sb.toString();
     }
 
-    /*
-    * 将URL解码
-    * */
-    public static String decodeURL(String source){
-        String target = "";
-        try {
-            target = URLDecoder.decode(source,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            log.error("decode url failure",e);
-        }
-        return target;
-    }
 }
