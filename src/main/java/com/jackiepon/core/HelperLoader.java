@@ -1,4 +1,4 @@
-package com.jackiepon;
+package com.jackiepon.core;
 
 import com.jackiepon.helper.BeanHelper;
 import com.jackiepon.helper.ClassHelper;

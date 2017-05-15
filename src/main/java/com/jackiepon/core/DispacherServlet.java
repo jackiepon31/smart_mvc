@@ -1,4 +1,4 @@
-package com.jackiepon;
+package com.jackiepon.core;
 
 import com.jackiepon.bean.Data;
 import com.jackiepon.bean.Handler;
